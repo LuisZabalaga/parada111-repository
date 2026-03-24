@@ -5,6 +5,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <title>Libro de Reclamaciones</title>
 
   <style>
@@ -288,7 +289,7 @@
         <tr>
           <td class="middle"><span class="label">SERVICIO</span></td>
           <td class="center middle"><input class="box-input" type="radio" name="tipo_bien" value="servicio"></td>
-          <td colspan="5" class="middle"><span class="label">DESCRIPCIÓN:</span><input type="text" class="input-line" name="descripcion" required></td>
+          <td colspan="5" class="middle"><span class="label">DESCRIPCIÓN:</span><input type="text" class="input-line" name="descripcion"></td>
         </tr>
 
         <tr>
@@ -412,9 +413,35 @@
   }
 
   function validar() {
-    const isValid = form.checkValidity();
-    btnPrint.disabled = !isValid;
-    btnSend.disabled = !isValid;
+    let isValid = true;
+
+      // Validar campos básicos siempre
+      if (!form.nombre.value.trim()) isValid = false;
+      if (!form.domicilio.value.trim()) isValid = false;
+      if (!form.dni.value.trim()) isValid = false;
+      if (!form.email.value.trim()) isValid = false;
+      if (!form.detalle.value.trim()) isValid = false;
+      if (!form.pedido.value.trim()) isValid = false;
+    
+      // Validar tipo de bien seleccionado
+      if (!form.tipo_bien.value) isValid = false;
+    
+      // 🔥 VALIDACIÓN CONDICIONAL
+      if (form.tipo_bien.value === "producto") {
+        if (!form.monto.value) isValid = false;
+      }
+    
+      if (form.tipo_bien.value === "servicio") {
+        if (!form.descripcion.value.trim()) isValid = false;
+      }
+    
+      // Validar tipo de solicitud
+      if (!form.tipo_solicitud.value) isValid = false;
+    
+      // ❌ NO validar sección 4 (fechas ni observaciones)
+    
+      btnPrint.disabled = !isValid;
+      btnSend.disabled = !isValid;
   }
 
   function enviarReclamoReal() {
@@ -423,13 +450,40 @@
     
       const emailCliente = document.getElementById('email-user').value;
       const emailProveedor = "luis.zabalaga0@gmail.com";
-    
+      
+      const htmlContent = `
+          <p><strong>Identificación del Consumidor</strong></p>
+          <p>
+            <strong>Nombre:</strong> ${form.nombre.value}<br>
+            <strong>Domicilio:</strong> ${form.domicilio.value}<br>
+            <strong>DNI:</strong> ${form.dni.value}<br>
+            <strong>Email:</strong> ${emailCliente}
+          </p>
+        
+          <p><strong>Bien Contratado</strong></p>
+          <p>
+            <strong>Tipo:</strong> ${form.tipo_bien.value}<br>
+            <strong>Monto:</strong> ${form.monto.value}<br>
+            <strong>Descripción:</strong> ${form.descripcion.value}
+          </p>
+        
+          <p><strong>Reclamación</strong></p>
+          <p>
+            <strong>Tipo:</strong> ${form.tipo_solicitud.value}<br>
+            <strong>Detalle:</strong><br>${form.detalle.value}<br>
+            <strong>Pedido:</strong><br>${form.pedido.value}
+          </p>
+        
+          <p><strong>Fecha:</strong> ${document.getElementById('fecha-actual').innerText}</p>
+      `;
+        
       const data = {
         to_email: emailCliente,
         cc_email: emailProveedor,
-        nombre: form.nombre.value,
-        mensaje: form.detalle.value,
-        fecha: document.getElementById('fecha-actual').innerText
+        subject: "Libro de Reclamaciones",
+        name: form.nombre.value,
+        time: document.getElementById('fecha-actual').innerText,
+        html_message: htmlContent // 🔥 ESTE ES EL IMPORTANTE
       };
     
       // 🔥 LOG DE LO QUE SE ENVÍA
