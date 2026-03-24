@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+  <title>Libro de Reclamaciones</title>
+
+  <style>
+    :root {
+      --border: 1px solid #000;
+      --gray: #d4d4d4;
+      --font: Arial, Helvetica, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 20px;
+      background: #f3f3f3;
+      font-family: var(--font);
+      color: #000;
+    }
+
+    .page {
+      width: 820px;
+      margin: 0 auto;
+      background: #fff;
+      padding: 20px;
+    }
+
+    .header-image-style {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 15px;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+    .footer-right {
+        width: 100%;
+        text-align: right;
+    }
+    .footer-right img {
+      width: 370px;
+    }
+    .header-left { display: flex; align-items: center; gap: 15px; }
+    .header-left img { width: 55px; height: auto; }
+    .header-left h1 { font-size: 26px; margin: 0; color: #555; font-weight: 500; }
+    .header-right { text-align: right; font-size: 11px; line-height: 1.4; min-width: 220px; }
+    .company-name { font-weight: bold; font-size: 13px; display: block; color: #000; }
+    .legal-text { font-size: 12px; text-align: center; margin: 15px 0; line-height: 1.4; color: #444; }
+    .info-estatica-row { font-size: 14px; margin-bottom: 10px; display: flex; align-items: center; justify-content: flex-start; gap: 5px; }
+
+    .book-form {
+      width: 100%;
+      border: var(--border);
+      border-collapse: collapse;
+      table-layout: fixed;
+      background: #fff;
+    }
+
+    .book-form td,
+    .book-form th {
+      border: var(--border);
+      padding: 4px 6px;
+      font-size: 12px;
+      vertical-align: top;
+    }
+
+    .section-title {
+      background: var(--gray);
+      font-weight: 700;
+      text-transform: uppercase;
+      text-align: left;
+      font-size: 12px;
+      padding: 5px 8px !important;
+    }
+
+    .label {
+      font-weight: 700;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .center {
+      text-align: center;
+      vertical-align: middle !important;
+    }
+
+    .middle {
+      vertical-align: middle !important;
+    }
+
+    .gray {
+      background: var(--gray);
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .input-line {
+      width: 100%;
+      border: none;
+      outline: none;
+      background: transparent;
+      font-size: 12px;
+      padding: 0;
+    }
+
+    .textarea-box {
+      width: 100%;
+      height: 100%;
+      min-height: 100px;
+      border: none;
+      outline: none;
+      resize: none;
+      font-size: 12px;
+      background: transparent;
+    }
+
+    .field-top {
+      display: flex;
+      flex-direction: column;
+      min-height: 130px;
+    }
+
+    .signature-box {
+      height: 150px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+    }
+
+    .signature-label {
+      border-top: var(--border);
+      text-align: center;
+      font-weight: 700;
+      font-size: 11px;
+      padding: 8px 4px;
+    }
+
+    .box-input {
+      width: 16px;
+      height: 16px;
+      accent-color: #000;
+    }
+
+    .date-box-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .date-box-wrap select {
+      width: 100%;
+      border: none;
+      background: transparent;
+      text-align: center;
+      font-size: 12px;
+      outline: none;
+    }
+
+    .actions {
+      margin-top: 18px;
+      display: flex;
+      justify-content: center;
+      gap: 14px;
+    }
+
+    /* BOTONERA AL FINAL */
+      .button-container {
+        display: flex;
+        gap: 15px;
+        margin-top: 30px;
+        justify-content: center;
+        border-top: 1px solid #eee;
+        padding-top: 25px;
+      }
+    
+      .btn {
+        padding: 14px 28px;
+        border: none;
+        cursor: pointer;
+        font-weight: bold;
+        transition: all 0.3s ease;
+        border-radius: 5px;
+        font-size: 15px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+    
+      .btn-print { background: #555; color: white; }
+      .btn-send { background: #007cba; color: white; }
+    
+      .btn:disabled {
+        background: #e0e0e0;
+        color: #999;
+        cursor: not-allowed;
+      }
+    
+    .tiny-note {
+      font-size: 10px !important;
+      line-height: 1.2;
+      text-align: center;
+      padding: 4px 6px !important;
+    }
+
+    .tiny-note-left {
+      font-size: 10px;
+      line-height: 1.25;
+      margin-top: 4px;
+    }
+
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+    
+      .page, .page * {
+        visibility: visible;
+      }
+    
+      .page {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+      }
+    
+      .actions {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <form id="form-reclamo">
+    <div class="page">
+      
+      <div class="header-image-style">
+        <div class="header-left">
+          <img src="https://i.postimg.cc/qvy5t2Dp/img-reclamaciones.png" alt="Libro">
+          <h1>Hoja de Reclamaciones Virtual</h1>
+        </div>
+        <div class="header-right">
+          <span class="company-name">Tiendas Parada111</span>
+          <span class="company-name">SnowBoarding S.A.C.</span>
+          RUC: 20379288449<br>
+          Calle Los Talladores 491, Urbanización El Artesano, Lima, Ate
+        </div>
+      </div>
+
+      <div class="legal-text">
+        Conforme a lo establecido en el Código de Protección y Defensa del Consumidor, este establecimiento cuenta con una Hoja de Reclamaciones a tu disposición.
+      </div>
+
+      <div class="info-estatica-row">
+        Nro de Reclamo: <div style="margin-right:20px; font-weight:500;">#00820</div> 
+        Fecha: <div id="fecha-actual" style="font-weight:500;">--/--/----</div>
+      </div>
+
+      <table class="book-form">
+        <colgroup>
+          <col style="width: 22%;"><col style="width: 17%;"><col style="width: 12%;"><col style="width: 12%;"><col style="width: 12%;"><col style="width: 19%;"><col style="width: 6%;">
+        </colgroup>
+
+        <tr><td colspan="7" class="section-title">1. IDENTIFICACIÓN DEL CONSUMIDOR RECLAMANTE</td></tr>
+        <tr><td colspan="7" class="middle"><span class="label">NOMBRE:</span><input type="text" class="input-line" name="nombre" required></td></tr>
+        <tr><td colspan="7" class="middle"><span class="label">DOMICILIO:</span><input type="text" class="input-line" name="domicilio" required></td></tr>
+        <tr>
+          <td colspan="2" class="middle"><span class="label">DNI / CE:</span><input type="text" class="input-line" name="dni" required></td>
+          <td colspan="5" class="middle"><span class="label">TELÉFONO / E-MAIL:</span><input type="email" id="email-user" class="input-line" name="email" required></td>
+        </tr>
+        <tr><td colspan="7" class="middle"><span class="label">PADRE O MADRE: [PARA EL CASO DE MENORES DE EDAD]</span><input type="text" class="input-line" name="apoderado"></td></tr>
+
+        <tr><td colspan="7" class="section-title">2. IDENTIFICACIÓN DEL BIEN CONTRATADO</td></tr>
+        <tr>
+          <td class="middle"><span class="label">PRODUCTO</span></td>
+          <td class="center middle"><input class="box-input" type="radio" name="tipo_bien" value="producto" required></td>
+          <td colspan="5" class="middle"><span class="label">MONTO RECLAMADO:</span><input type="number" step="0.01" class="input-line" name="monto"></td>
+        </tr>
+        <tr>
+          <td class="middle"><span class="label">SERVICIO</span></td>
+          <td class="center middle"><input class="box-input" type="radio" name="tipo_bien" value="servicio"></td>
+          <td colspan="5" class="middle"><span class="label">DESCRIPCIÓN:</span><input type="text" class="input-line" name="descripcion" required></td>
+        </tr>
+
+        <tr>
+          <td colspan="3" class="section-title">3. DETALLE DE LA RECLAMACIÓN Y PEDIDO DEL CONSUMIDOR</td>
+          <td class="section-title center">RECLAMO<sup>1</sup></td>
+          <td class="center middle"><input class="box-input" type="radio" name="tipo_solicitud" value="reclamo" required></td>
+          <td class="section-title center">QUEJA<sup>2</sup></td>
+          <td class="center middle"><input class="box-input" type="radio" name="tipo_solicitud" value="queja"></td>
+        </tr>
+
+        <tr><td colspan="7"><div class="field-top"><span class="label">DETALLE:</span><textarea class="textarea-box" name="detalle" required></textarea></div></td></tr>
+        <tr>
+          <td colspan="5"><div class="field-top" style="min-height: 85px;"><span class="label">PEDIDO:</span><textarea class="textarea-box" name="pedido" required></textarea></div></td>
+          <td colspan="2"><div class="signature-box"><div class="signature-label">FIRMA DEL CONSUMIDOR</div></div></td>
+        </tr>
+
+        <tr><td colspan="7" class="section-title">4. OBSERVACIONES Y ACCIONES ADOPTADAS POR EL PROVEEDOR</td></tr>
+        <tr>
+          <td colspan="2" class="middle"><span class="label">FECHA DE COMUNICACIÓN DE LA RESPUESTA:</span></td>
+          <td class="gray center"><div class="date-box-wrap"><span>[DÍA]</span><select id="dia_resp" name="dia_resp"></select></div></td>
+          <td class="gray center"><div class="date-box-wrap"><span>[MES]</span><select id="mes_resp" name="mes_resp"></select></div></td>
+          <td class="gray center"><div class="date-box-wrap"><span>[AÑO]</span><select id="anio_resp" name="anio_resp"></select></div></td>
+          <td colspan="2"></td>
+        </tr>
+
+        <tr>
+          <td colspan="5"><textarea class="textarea-box" name="observaciones_proveedor"></textarea></td>
+          <td colspan="2"><div class="signature-box"><div class="signature-label">FIRMA DEL PROVEEDOR</div></div></td>
+        </tr>
+        
+        <tr>
+          <td colspan="2" class="tiny-note" style="text-align:left">
+            <strong>¹ RECLAMO:</strong> Disconformidad relacionada a los productos o servicios.
+          </td>
+          <td colspan="5" class="tiny-note" style="text-align:left">
+            <strong>² QUEJA:</strong> Disconformidad no relacionada a los productos o servicios; o, malestar o descontento respecto a la atención al público.
+          </td>
+        </tr>
+
+        <tr>
+          <td colspan="7" class="tiny-note" style="text-align:right">
+            Destinatario (consumidor, proveedor o INDECOPI según corresponda)
+          </td>
+        </tr>
+      </table>
+      
+      <div class="tiny-note-left">
+        *La formulación del reclamo no impide acudir a otras vías de solución de controversias ni es requisito previo para interponer una denuncia ante el INDECOPI.
+      </div>
+      <div class="tiny-note-left">
+        *El proveedor deberá dar respuesta al reclamo en un plazo no mayor a quince (15) días hábiles improrrogables.
+      </div>
+      
+      <div class="footer-right">
+          <img src="https://i.postimg.cc/jj8mKtkY/img-indecopi.png" alt="Indecopi">
+      </div>
+
+      <div class="actions">
+        <button type="button" id="btn-print" class="btn btn-print" onclick="window.print()" disabled>
+            🖨 Imprimir / Descargar
+        </button>
+        <button type="button" id="btn-send" class="btn btn-send" onclick="enviarReclamoReal()" disabled>📧 Enviar Reclamo
+        </button>
+      </div>
+    </div>
+    
+    </div>
+  </form>
+
+  <script>
+  emailjs.init("06e2WAhRwMzmrceel");
+
+  const form = document.getElementById('form-reclamo');
+  const btnPrint = document.getElementById('btn-print');
+  const btnSend = document.getElementById('btn-send');
+
+  function setupFechasRespuesta() {
+    const dia = document.getElementById('dia_resp');
+    const mes = document.getElementById('mes_resp');
+    const anio = document.getElementById('anio_resp');
+
+    if (!dia || !mes || !anio) return;
+
+    // 🔥 Generar opciones UNA sola vez correctamente
+    let dias = '<option value="" disabled selected>Día</option>';
+    for (let i = 1; i <= 31; i++) {
+      const val = String(i).padStart(2, '0');
+      dias += `<option value="${val}">${val}</option>`;
+    }
+
+    let meses = '<option value="" disabled selected>Mes</option>';
+    for (let i = 1; i <= 12; i++) {
+      const val = String(i).padStart(2, '0');
+      meses += `<option value="${val}">${val}</option>`;
+    }
+
+    const currentYear = new Date().getFullYear();
+    let anios = `
+      <option value="" disabled selected>Año</option>
+      <option value="${currentYear}">${currentYear}</option>
+      <option value="${currentYear + 1}">${currentYear + 1}</option>
+    `;
+
+    dia.innerHTML = dias;
+    mes.innerHTML = meses;
+    anio.innerHTML = anios;
+  }
+
+  function actualizarFechaHoy() {
+    const hoy = new Date();
+
+    const d = String(hoy.getDate()).padStart(2, '0');
+    const m = String(hoy.getMonth() + 1).padStart(2, '0');
+    const y = hoy.getFullYear();
+
+    const el = document.getElementById('fecha-actual');
+
+    if (el) {
+      el.textContent = `${d}/${m}/${y}`;
+    }
+  }
+
+  function validar() {
+    const isValid = form.checkValidity();
+    btnPrint.disabled = !isValid;
+    btnSend.disabled = !isValid;
+  }
+
+  function enviarReclamoReal() {
+      btnSend.disabled = true;
+      btnSend.innerText = "⏳ Enviando...";
+    
+      const emailCliente = document.getElementById('email-user').value;
+      const emailProveedor = "luis.zabalaga0@gmail.com";
+    
+      const data = {
+        to_email: emailCliente,
+        cc_email: emailProveedor,
+        nombre: form.nombre.value,
+        mensaje: form.detalle.value,
+        fecha: document.getElementById('fecha-actual').innerText
+      };
+    
+      // 🔥 LOG DE LO QUE SE ENVÍA
+      console.log("📤 DATA ENVIADA A EMAILJS:");
+      console.log(data);
+    
+      emailjs.send('service_33ittq2', 'template_12cvgjk', data)
+        .then((response) => {
+    
+          // ✅ RESPUESTA EXITOSA
+          console.log("✅ RESPUESTA EMAILJS:");
+          console.log(response);
+    
+          alert('✅ Enviado correctamente');
+          btnSend.innerText = "📧 ENVIAR";
+          validar();
+    
+        })
+        .catch((error) => {
+    
+          // ❌ ERROR DETALLADO
+          console.error("❌ ERROR EMAILJS:");
+          console.error(error);
+    
+          alert('❌ Error al enviar');
+          btnSend.disabled = false;
+          btnSend.innerText = "📧 ENVIAR";
+        });
+    }
+
+  form.addEventListener('input', validar);
+  form.addEventListener('change', validar);
+
+  // 🔥 CLAVE: usar DOMContentLoaded en vez de window.onload
+  document.addEventListener('DOMContentLoaded', () => {
+    actualizarFechaHoy();
+    setupFechasRespuesta();
+    validar();
+  });
+</script>
+</body>
+</html>
