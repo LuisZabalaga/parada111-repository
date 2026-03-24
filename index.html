@@ -133,15 +133,46 @@
       height: 150px;
       display: flex;
       flex-direction: column;
-      justify-content: flex-end;
+      justify-content: space-between; /* 🔥 clave */
+      align-items: stretch;
+      position: relative;
+    }
+    
+    .signature-box-bottom {
+      height: 150px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end; /* 🔥 siempre abajo */
+    }
+    
+    .firma-content {
+      flex: 1;
+      display: flex;
+      align-items: center;   /* 🔥 centra vertical */
+      justify-content: center; /* 🔥 centra horizontal */
+      flex-direction: column;
     }
 
+    #firma-preview {
+      max-width: 100%;
+      max-height: 90px;
+      display: none;
+      margin-bottom: 5px;
+    }
+    
+    #firma-text {
+      font-size: 11px;
+      color: #666;
+      text-align: center; /* 🔥 centra texto */
+    }
+    
     .signature-label {
-      border-top: var(--border);
+      border-top: 1px solid #000;
       text-align: center;
       font-weight: 700;
       font-size: 11px;
       padding: 8px 4px;
+      width: 100%; /* 🔥 línea completa */
     }
 
     .box-input {
@@ -275,8 +306,15 @@
         <tr><td colspan="7" class="middle"><span class="label">NOMBRE:</span><input type="text" class="input-line" name="nombre" required></td></tr>
         <tr><td colspan="7" class="middle"><span class="label">DOMICILIO:</span><input type="text" class="input-line" name="domicilio" required></td></tr>
         <tr>
-          <td colspan="2" class="middle"><span class="label">DNI / CE:</span><input type="text" class="input-line" name="dni" required></td>
-          <td colspan="5" class="middle"><span class="label">TELÉFONO / E-MAIL:</span><input type="email" id="email-user" class="input-line" name="email" required></td>
+          <td colspan="2" class="middle"><span class="label">DNI / CE:</span><input type="number" class="input-line" name="dni" required></td>
+          <td colspan="2" class="middle">
+            <span class="label">TELÉFONO:</span>
+            <input type="number" class="input-line" name="telefono" required>
+          </td>
+          <td colspan="3" class="middle">
+            <span class="label">E-MAIL:</span>
+            <input type="email" id="email-user" class="input-line" name="email" required>
+          </td>
         </tr>
         <tr><td colspan="7" class="middle"><span class="label">PADRE O MADRE: [PARA EL CASO DE MENORES DE EDAD]</span><input type="text" class="input-line" name="apoderado"></td></tr>
 
@@ -303,7 +341,19 @@
         <tr><td colspan="7"><div class="field-top"><span class="label">DETALLE:</span><textarea class="textarea-box" name="detalle" required></textarea></div></td></tr>
         <tr>
           <td colspan="5"><div class="field-top" style="min-height: 85px;"><span class="label">PEDIDO:</span><textarea class="textarea-box" name="pedido" required></textarea></div></td>
-          <td colspan="2"><div class="signature-box"><div class="signature-label">FIRMA DEL CONSUMIDOR</div></div></td>
+          <td colspan="2">
+              <div class="signature-box" onclick="document.getElementById('firma-input').click()" style="cursor:pointer;">
+                
+                <input type="file" id="firma-input" accept="image/*" style="display:none" onchange="previewFirma(event)">
+            
+                <div class="firma-content">
+                  <img id="firma-preview" />
+                  <span id="firma-text">Click para subir firma</span>
+                </div>
+            
+                <div class="signature-label">FIRMA DEL CONSUMIDOR</div>
+              </div>
+          </td>
         </tr>
 
         <tr><td colspan="7" class="section-title">4. OBSERVACIONES Y ACCIONES ADOPTADAS POR EL PROVEEDOR</td></tr>
@@ -317,7 +367,7 @@
 
         <tr>
           <td colspan="5"><textarea class="textarea-box" name="observaciones_proveedor"></textarea></td>
-          <td colspan="2"><div class="signature-box"><div class="signature-label">FIRMA DEL PROVEEDOR</div></div></td>
+          <td colspan="2"><div class="signature-box-bottom"><div class="signature-label">FIRMA DEL PROVEEDOR</div></div></td>
         </tr>
         
         <tr>
@@ -365,6 +415,48 @@
   const form = document.getElementById('form-reclamo');
   const btnPrint = document.getElementById('btn-print');
   const btnSend = document.getElementById('btn-send');
+  
+  function previewFirma(event) {
+      const file = event.target.files[0];
+      const preview = document.getElementById('firma-preview');
+      const text = document.getElementById('firma-text');
+    
+      if (!file) return;
+    
+      const img = new Image();
+      const reader = new FileReader();
+    
+      reader.onload = function (e) {
+        img.src = e.target.result;
+      };
+    
+      img.onload = function () {
+        // 🔥 crear canvas para comprimir
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+    
+        // 🔥 REDUCCIÓN DE TAMAÑO (clave)
+        const MAX_WIDTH = 150;
+        const scale = MAX_WIDTH / img.width;
+    
+        canvas.width = MAX_WIDTH;
+        canvas.height = img.height * scale;
+    
+        // 🔥 dibujar imagen reducida
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    
+        // 🔥 COMPRESIÓN (calidad 0.6 aprox)
+        // 🔥 JPEG + compresión fuerte
+        const compressedBase64 = canvas.toDataURL('image/jpeg', 0.3);
+    
+        // 🔥 mostrar preview
+        preview.src = compressedBase64;
+        preview.style.display = "block";
+        text.style.display = "none";
+      };
+    
+      reader.readAsDataURL(file);
+  }
 
   function setupFechasRespuesta() {
     const dia = document.getElementById('dia_resp');
@@ -413,43 +505,44 @@
   }
 
   function validar() {
-    let isValid = true;
+    let isValid = form.checkValidity();
 
-      // Validar campos básicos siempre
-      if (!form.nombre.value.trim()) isValid = false;
-      if (!form.domicilio.value.trim()) isValid = false;
-      if (!form.dni.value.trim()) isValid = false;
-      if (!form.email.value.trim()) isValid = false;
-      if (!form.detalle.value.trim()) isValid = false;
-      if (!form.pedido.value.trim()) isValid = false;
-    
-      // Validar tipo de bien seleccionado
-      if (!form.tipo_bien.value) isValid = false;
-    
-      // 🔥 VALIDACIÓN CONDICIONAL
-      if (form.tipo_bien.value === "producto") {
-        if (!form.monto.value) isValid = false;
-      }
-    
-      if (form.tipo_bien.value === "servicio") {
-        if (!form.descripcion.value.trim()) isValid = false;
-      }
-    
-      // Validar tipo de solicitud
-      if (!form.tipo_solicitud.value) isValid = false;
-    
-      // ❌ NO validar sección 4 (fechas ni observaciones)
-    
-      btnPrint.disabled = !isValid;
-      btnSend.disabled = !isValid;
+    // Validaciones extra
+    if (!form.nombre.value.trim()) isValid = false;
+    if (!form.domicilio.value.trim()) isValid = false;
+    if (!form.dni.value.trim()) isValid = false;
+    if (!form.detalle.value.trim()) isValid = false;
+    if (!form.pedido.value.trim()) isValid = false;
+
+    if (!form.tipo_bien.value) isValid = false;
+
+    if (form.tipo_bien.value === "producto") {
+      if (!form.monto.value) isValid = false;
+    }
+
+    if (form.tipo_bien.value === "servicio") {
+      if (!form.descripcion.value.trim()) isValid = false;
+    }
+
+    if (!form.tipo_solicitud.value) isValid = false;
+
+    btnPrint.disabled = !isValid;
+    btnSend.disabled = !isValid;
   }
 
   function enviarReclamoReal() {
+      
+      if (!form.checkValidity()) {
+        form.reportValidity(); // 🔥 muestra errores nativos (incluye Gmail)
+        return;
+      }
+  
       btnSend.disabled = true;
       btnSend.innerText = "⏳ Enviando...";
     
       const emailCliente = document.getElementById('email-user').value;
       const emailProveedor = "luis.zabalaga0@gmail.com";
+      const firmaImg = document.getElementById('firma-preview').src;
       
       const htmlContent = `
           <p><strong>Identificación del Consumidor</strong></p>
@@ -475,12 +568,17 @@
           </p>
         
           <p><strong>Fecha:</strong> ${document.getElementById('fecha-actual').innerText}</p>
+          <p><strong>Firma:</strong><br>
+              ${firmaImg && firmaImg.startsWith('data:image') 
+                  ? `<img src="${firmaImg}" style="max-width:200px; display:block;" />`
+                  : 'No adjunta'}
+          </p>
       `;
         
       const data = {
         to_email: emailCliente,
         cc_email: emailProveedor,
-        subject: "Libro de Reclamaciones",
+        subject: `Reclamacion Virtual - ${form.nombre.value} - ${document.getElementById('fecha-actual').innerText}`,
         name: form.nombre.value,
         time: document.getElementById('fecha-actual').innerText,
         html_message: htmlContent // 🔥 ESTE ES EL IMPORTANTE
@@ -522,6 +620,41 @@
     actualizarFechaHoy();
     setupFechasRespuesta();
     validar();
+    
+    // 🔥 VALIDACIÓN SOLO PARA EMAIL (como pediste)
+   const emailInput = document.getElementById('email-user');
+
+    // 🔥 Validación al salir del input
+    emailInput.addEventListener("blur", function () {
+    
+      if (emailInput.value.trim() === "") return;
+    
+      // Validar Gmail específicamente
+      const gmailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
+    
+      if (!gmailRegex.test(emailInput.value)) {
+    
+        // 🔥 mensaje nativo personalizado
+        emailInput.setCustomValidity("Ingrese un correo válido de Gmail (ej: usuario@gmail.com)");
+    
+        emailInput.reportValidity();
+    
+        // 🔥 bloquear salida
+        setTimeout(() => {
+          emailInput.focus();
+        }, 0);
+    
+      } else {
+        // 🔥 limpiar error si está bien
+        emailInput.setCustomValidity("");
+      }
+    
+    });
+    
+    // 🔥 También validar mientras escribe (clave para UX)
+    emailInput.addEventListener("input", function () {
+      emailInput.setCustomValidity("");
+    });
   });
 </script>
 </body>
